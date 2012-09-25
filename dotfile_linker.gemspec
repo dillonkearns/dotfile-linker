@@ -16,4 +16,9 @@ Gem::Specification.new do |gem|
   gem.name          = "dotfile_linker"
   gem.require_paths = ["lib"]
   gem.version       = DotfileLinker::VERSION
+
+  gem.required_ruby_version = ">=1.8.7"
+  gem.add_runtime_dependency("colorize")
+  gem.add_development_dependency("rake", "~>0.9")
+  gem.add_development_dependency("rspec", "~>2.9")
 end
