@@ -4,7 +4,7 @@ require File.expand_path('../lib/dotfile_linker/version', __FILE__)
 Gem::Specification.new do |gem|
   gem.authors       = ["Dillon Kearns"]
   gem.email         = ["dillon@dillonkearns.com"]
-  gem.description   = "A simple command-line utility to help you symlink your dotfiles to your home directory. Just run `link_dotfiles` from your dotfiles directory."
+  gem.description   = "A simple command-line utility to help you symlink your dotfiles to your home directory. Just run `dotfile_linker` from your dotfiles directory."
   gem.summary       = gem.description
   gem.homepage      = "https://github.com/dillonkearns/dotfile-linker"
 

@@ -1,6 +1,6 @@
 # DotfileLinker [![Build Status](https://secure.travis-ci.org/dillonkearns/dotfile-linker.png?branch=master)](http://travis-ci.org/dillonkearns/dotfile-linker?branch=master)
 
-A simple command-line utility to help you symlink your dotfiles to your home directory. Just run `link_dotfiles` from
+A simple command-line utility to help you symlink your dotfiles to your home directory. Just run `dotfile_linker` from
 your dotfiles directory.
 
 ## Description
@@ -17,7 +17,7 @@ This gem is hosted on [rubygems.org](rubygems.org), so simply install with:
 
 ## Usage
 
-Run `link_dotfiles` from your dotfiles directory. The script will then run through each file that isn't already
+Run `dotfile_linker` from your dotfiles directory. The script will then run through each file that isn't already
 symlinked in your home directory and ask if you want to symlink it. The `-d` option cycles through existing symlinks in
 your home directory and asks if you'd like to remove them.
 
