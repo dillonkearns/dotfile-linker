@@ -25,7 +25,8 @@ module DotfileLinker
     filename =~ /^\.\.?$/ or BLACKLIST.include?(filename)
   end
 
-  def self.positive_user_response?
+  def self.positive_user_response?(message)
+    puts message
     case gets.strip
     when /^y/i
       true
@@ -43,13 +44,13 @@ module DotfileLinker
       actual_file = File.expand_path(filename)
       if @@options[:delete_mode]
         if File.symlink?(symlink_file)
-          puts "delete symlink #{ symlink_file.human_filename.magenta }? (y/n)"
-          File.delete(symlink_file) if positive_user_response?
+          File.delete(symlink_file) if positive_user_response?("delete symlink #{ symlink_file.human_filename.magenta }? (y/n)")
         end
       else
         unless File.symlink?(symlink_file)
-          puts "link %s -> %s? (y/n)" % [symlink_file.human_filename.magenta, actual_file.human_filename.cyan]
-          File.symlink(actual_file, symlink_file) if positive_user_response?
+          if positive_user_response?("link #{ symlink_file.human_filename.magenta } -> #{ actual_file.human_filename.cyan }? (y/n)")
+            File.symlink(actual_file, symlink_file)
+          end
         end
       end
     end

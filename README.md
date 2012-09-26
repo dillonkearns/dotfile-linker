@@ -1,4 +1,4 @@
-# DotfileLinker
+# DotfileLinker [![Build Status](https://secure.travis-ci.org/dillonkearns/dotfile-linker.png?branch=master)](http://travis-ci.org/dillonkearns/dotfile-linker?branch=master)
 
 A simple command-line utility to help you symlink your dotfiles to your home directory. Just run `link_dotfiles` from
 your dotfiles directory.
