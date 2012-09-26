@@ -1,6 +1,7 @@
 # DotfileLinker
 
-A simple script to help you symlink your dotfiles to your home directory.
+A simple command-line utility to help you symlink your dotfiles to your home directory. Just run `link_dotfiles` from
+your dotfiles directory.
 
 ## Description
 
@@ -10,10 +11,9 @@ structure on how you manage your dotfiles.
 
 ## Installation
 
-Download the source, then run:
+This gem is hosted on [rubygems.org](rubygems.org), so simply install with:
 
-    $ bundle install
-    $ rake install
+    $ gem install dotfile_linker
 
 ## Usage
 
