@@ -51,7 +51,7 @@ module DotfileLinker
         unless File.symlink?(symlink_path)
           if positive_user_response?("link #{ symlink_path.human_filename.magenta } -> #{ actual_file_path.human_filename.cyan }? (y/n)")
             if File.exist?(symlink_path)
-              raise FileAlreadyExistsError.new("File already exists in #{ Dir.home }. Please remove the file and try again.")
+              raise FileAlreadyExistsError.new("File already exists in #{ ENV['HOME'] }. Please remove the file and try again.")
             end
             File.symlink(actual_file_path, symlink_path)
           end

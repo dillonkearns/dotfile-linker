@@ -2,6 +2,10 @@ require 'rspec'
 require 'dotfile_linker'
 
 describe DotfileLinker do
+  before do
+    ENV['HOME'] = '/Users/someuser'
+  end
+
   describe ".exclude_file?" do
     it "excludes files in blacklist" do
       %w{ . .. .git }.each { |filename| DotfileLinker.exclude_file?(filename).should be }
@@ -20,7 +24,7 @@ describe DotfileLinker do
     before do
       DotfileLinker.stub!(:positive_user_response?).and_return(true)
       File.stub!(:symlink?).and_return(false)
-      File.stub!(:exist?).with(/^#{ Dir.home }/).and_return(false)
+      File.stub!(:exist?).with(/^#{ ENV['HOME'] }/).and_return(false)
 
       @bad_filenames = %w{ . .. .git }
       @good_filenames = %w{.bash_profile .bashrc .dotrc  .emacs .gemrc .gitconfig .gitignore_global .irbrc .oh-my-zsh
@@ -29,7 +33,7 @@ describe DotfileLinker do
 
     it "links accepted files to home directory" do
       @good_filenames.each do |filename|
-        File.should_receive(:symlink).with("#{ Dir.pwd }/#{ filename }", "#{ Dir.home }/#{ filename }")
+        File.should_receive(:symlink).with("#{ Dir.pwd }/#{ filename }", "#{ ENV['HOME'] }/#{ filename }")
         DotfileLinker.link_file(filename)
       end
     end
@@ -43,7 +47,7 @@ describe DotfileLinker do
 
     describe "when file of same name exists in ~" do
       it "raises a FileAlreadyExists error" do
-        File.should_receive(:exist?).with(/^#{ Dir.home }/).and_return(true)
+        File.should_receive(:exist?).with(/^#{ ENV['HOME'] }/).and_return(true)
         filename = File.expand_path("~/.test_dotfile")
         expect { DotfileLinker.link_file(filename) }.to raise_error(DotfileLinker::FileAlreadyExistsError)
       end
@@ -54,7 +58,7 @@ describe DotfileLinker do
         end
 
         it "doesn't raise a FileAlreadyExists error" do
-          File.stub!(:exist?).with(/^#{ Dir.home }/).and_return(true)
+          File.stub!(:exist?).with(/^#{ ENV['HOME'] }/).and_return(true)
           filename = File.expand_path("~/.test_dotfile")
           expect { DotfileLinker.link_file(filename) }.not_to raise_error(DotfileLinker::FileAlreadyExistsError)
         end
@@ -68,7 +72,7 @@ describe DotfileLinker do
     end
 
     it "replaces home dir for long path" do
-      File.expand_path("#{ Dir.home }/some/test/dir/.gitignore").human_filename.should == '~/some/test/dir/.gitignore'
+      File.expand_path("~/some/test/dir/.gitignore").human_filename.should == '~/some/test/dir/.gitignore'
     end
   end
 end
