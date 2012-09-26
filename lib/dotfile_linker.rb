@@ -4,13 +4,14 @@ require 'colorize'
 
 class String
   def human_filename
-    self.gsub(%r{^(/[^/]+){2}}, '~')
+    self.sub(/^#{ENV['HOME']}/, '~')
   end
 end
 
 module DotfileLinker
   BLACKLIST = %w{ .git }
   @@options = {}
+  class FileAlreadyExistsError < RuntimeError; end
 
   def self.parse_options
     optparse = OptionParser.new do |opts|
@@ -40,16 +41,19 @@ module DotfileLinker
 
   def self.link_file(filename)
     unless exclude_file?(filename)
-      symlink_file = File.expand_path("~/#{ filename }")
-      actual_file = File.expand_path(filename)
+      symlink_path = File.expand_path("~/#{ filename }")
+      actual_file_path = File.expand_path(filename)
       if @@options[:delete_mode]
-        if File.symlink?(symlink_file)
-          File.delete(symlink_file) if positive_user_response?("delete symlink #{ symlink_file.human_filename.magenta }? (y/n)")
+        if File.symlink?(symlink_path)
+          File.delete(symlink_path) if positive_user_response?("delete symlink #{ symlink_path.human_filename.magenta }? (y/n)")
         end
       else
-        unless File.symlink?(symlink_file)
-          if positive_user_response?("link #{ symlink_file.human_filename.magenta } -> #{ actual_file.human_filename.cyan }? (y/n)")
-            File.symlink(actual_file, symlink_file)
+        unless File.symlink?(symlink_path)
+          if positive_user_response?("link #{ symlink_path.human_filename.magenta } -> #{ actual_file_path.human_filename.cyan }? (y/n)")
+            if File.exist?(symlink_path)
+              raise FileAlreadyExistsError.new("File already exists in #{ Dir.home }. Please remove the file and try again.")
+            end
+            File.symlink(actual_file_path, symlink_path)
           end
         end
       end

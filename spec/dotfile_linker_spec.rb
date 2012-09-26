@@ -20,6 +20,7 @@ describe DotfileLinker do
     before do
       DotfileLinker.stub!(:positive_user_response?).and_return(true)
       File.stub!(:symlink?).and_return(false)
+      File.stub!(:exist?).with(/^#{ Dir.home }/).and_return(false)
 
       @bad_filenames = %w{ . .. .git }
       @good_filenames = %w{.bash_profile .bashrc .dotrc  .emacs .gemrc .gitconfig .gitignore_global .irbrc .oh-my-zsh
@@ -37,6 +38,26 @@ describe DotfileLinker do
       @bad_filenames.each do |filename|
         File.should_not_receive(:symlink)
         DotfileLinker.link_file(filename)
+      end
+    end
+
+    describe "when file of same name exists in ~" do
+      it "raises a FileAlreadyExists error" do
+        File.should_receive(:exist?).with(/^#{ Dir.home }/).and_return(true)
+        filename = File.expand_path("~/.test_dotfile")
+        expect { DotfileLinker.link_file(filename) }.to raise_error(DotfileLinker::FileAlreadyExistsError)
+      end
+
+      describe "when user gives negative response" do
+        before do
+          DotfileLinker.stub!(:positive_user_response?).and_return(false)
+        end
+
+        it "doesn't raise a FileAlreadyExists error" do
+          File.stub!(:exist?).with(/^#{ Dir.home }/).and_return(true)
+          filename = File.expand_path("~/.test_dotfile")
+          expect { DotfileLinker.link_file(filename) }.not_to raise_error(DotfileLinker::FileAlreadyExistsError)
+        end
       end
     end
   end
