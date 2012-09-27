@@ -11,7 +11,7 @@ structure on how you manage your dotfiles.
 
 ## Installation
 
-This gem is hosted on [rubygems.org](rubygems.org), so simply install with:
+This gem is hosted on [rubygems.org](https://rubygems.org/gems/dotfile_linker), so simply install with:
 
     $ gem install dotfile_linker
 
