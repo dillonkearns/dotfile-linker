@@ -16,7 +16,9 @@ module DotfileLinker
   def self.parse_options
     optparse = OptionParser.new do |opts|
       opts.on('-d', '--delete', 'Delete symlinks') { @@options[:delete_mode] = true }
+      opts.on('-p', '--path PATH', String, 'Use [PATH] as dotfiles directory (instead of current directory)') { |path| @@options[:path] = File.expand_path(path) }
       opts.on_tail('-v', '--version', 'Show version') { puts VERSION; exit }
+      opts.on_tail('-h', '--help', 'Show this message') { puts opts; exit }
       opts.on_tail('-h', '--help', 'Show this message') { puts opts; exit }
     end
     optparse.parse!
@@ -28,6 +30,10 @@ module DotfileLinker
 
   def self.home_dir
     @@home_dir ||= ENV['HOME']
+  end
+
+  def self.dotfiles_dir
+    @@dotfiles_dir ||= @@options[:path] || Dir.pwd
   end
 
   def self.positive_user_response?(message)
@@ -46,7 +52,7 @@ module DotfileLinker
   def self.link_file(filename)
     unless exclude_file?(filename)
       symlink_path = File.expand_path("~/#{ filename }")
-      actual_file_path = File.expand_path(filename)
+      actual_file_path = File.expand_path("#{ dotfiles_dir }/#{ filename }")
       if @@options[:delete_mode]
         if File.symlink?(symlink_path)
           File.delete(symlink_path) if positive_user_response?("delete symlink #{ symlink_path.human_filename.magenta }? (y/n)")
@@ -65,7 +71,7 @@ module DotfileLinker
   end
 
   def self.link_files
-    Dir.foreach(Dir.pwd) { |filename| link_file(filename) }
+    Dir.foreach(dotfiles_dir) { |filename| link_file(filename) }
   end
 
   def self.start
