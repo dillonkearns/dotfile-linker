@@ -20,28 +20,30 @@ describe DotfileLinker do
     end
   end
 
-  describe ".link_file when symlink doesn't already exist" do
-    before do
-      DotfileLinker.stub!(:positive_user_response?).and_return(true)
-      File.stub!(:symlink?).and_return(false)
-      File.stub!(:exist?).with(/^#{ ENV['HOME'] }/).and_return(false)
+  describe ".link_file" do
+    describe "when symlink doesn't already exist" do
+      before do
+        DotfileLinker.stub!(:positive_user_response?).and_return(true)
+        File.stub!(:symlink?).and_return(false)
+        File.stub!(:exist?).with(/^#{ ENV['HOME'] }/).and_return(false)
 
-      @bad_filenames = %w{ . .. .git }
-      @good_filenames = %w{.bash_profile .bashrc .dotrc  .emacs .gemrc .gitconfig .gitignore_global .irbrc .oh-my-zsh
-                          .pryrc .rvmrc .ssh .tmux.conf .zshrc .zshrc.pre-oh-my-zsh}
-    end
-
-    it "links accepted files to home directory" do
-      @good_filenames.each do |filename|
-        File.should_receive(:symlink).with("#{ Dir.pwd }/#{ filename }", "#{ ENV['HOME'] }/#{ filename }")
-        DotfileLinker.link_file(filename)
+        @bad_filenames = %w{ . .. .git }
+        @good_filenames = %w{.bash_profile .bashrc .dotrc  .emacs .gemrc .gitconfig .gitignore_global .irbrc .oh-my-zsh
+                            .pryrc .rvmrc .ssh .tmux.conf .zshrc .zshrc.pre-oh-my-zsh}
       end
-    end
 
-    it "doesn't link blacklisted files" do
-      @bad_filenames.each do |filename|
-        File.should_not_receive(:symlink)
-        DotfileLinker.link_file(filename)
+      it "links accepted files to home directory" do
+        @good_filenames.each do |filename|
+          File.should_receive(:symlink).with("#{ Dir.pwd }/#{ filename }", "#{ ENV['HOME'] }/#{ filename }")
+          DotfileLinker.link_file(filename)
+        end
+      end
+
+      it "doesn't link blacklisted files" do
+        @bad_filenames.each do |filename|
+          File.should_not_receive(:symlink)
+          DotfileLinker.link_file(filename)
+        end
       end
     end
 
