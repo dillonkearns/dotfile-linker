@@ -1,4 +1,4 @@
-require 'rspec'
+require 'spec_helper'
 require 'dotfile_linker'
 
 describe DotfileLinker do
