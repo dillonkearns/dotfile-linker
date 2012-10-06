@@ -4,6 +4,7 @@ require 'dotfile_linker'
 describe DotfileLinker do
   before do
     ENV['HOME'] = '/Users/someuser'
+    DotfileLinker.stub!(:positive_user_response?).and_return(true)
   end
 
   describe ".exclude_file?" do
@@ -20,10 +21,15 @@ describe DotfileLinker do
     end
   end
 
+  describe ".link_files" do
+    it "raises exception when home dir and dotfiles dir are the same" do
+      DotfileLinker.stub!(:dotfiles_dir).and_return(DotfileLinker.home_dir)
+      expect { DotfileLinker.link_files }.to raise_error(DotfileLinker::InvalidDotfilesDir)
+    end
+  end
+
   describe ".link_file" do
     before do
-      DotfileLinker.stub!(:positive_user_response?).and_return(true)
-
       @bad_filenames = %w{ . .. .git }
       @good_filenames = %w{.bash_profile .bashrc .dotrc  .emacs .gemrc .gitconfig .gitignore_global .irbrc .oh-my-zsh
                           .pryrc .rvmrc .ssh .tmux.conf .zshrc .zshrc.pre-oh-my-zsh}

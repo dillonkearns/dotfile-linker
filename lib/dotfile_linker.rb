@@ -12,7 +12,7 @@ end
 module DotfileLinker
   BLACKLIST = %w{ .git }
   @@options = {}
-  class FileAlreadyExistsError < RuntimeError; end
+  class InvalidDotfilesDir < RuntimeError; end
 
   def self.parse_options
     optparse = OptionParser.new do |opts|
@@ -59,7 +59,14 @@ module DotfileLinker
     end
   end
 
+  def self.raise_if_home_and_dotfiles_dir_match
+    if File.expand_path(home_dir) == File.expand_path(dotfiles_dir)
+      raise InvalidDotfilesDir, "Please specify your dotfiles directory by running `link_dotfiles` from that path, or providing a --path flag".red
+    end
+  end
+
   def self.link_files
+    raise_if_home_and_dotfiles_dir_match
     Dir.foreach(home_dir) { |filename| link_file(filename) }
   end
 
@@ -69,5 +76,7 @@ module DotfileLinker
     puts 'Done'
   rescue Interrupt
     # do nothing
+  rescue InvalidDotfilesDir => e
+    puts e.message
   end
 end
