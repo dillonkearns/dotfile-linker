@@ -21,6 +21,18 @@ describe DotfileLinker do
     end
   end
 
+  describe ".ignore_list" do
+    it "excludes files which are in the .dotfiles_ignore file" do
+      File.should_receive(:open).with(DotfileLinker.ignore_file_path, kind_of(String)).and_return(".ignored_file1\n.ignored_file2\n.ignored_file3\n")
+      DotfileLinker.ignore_list.should == %w[.ignored_file1 .ignored_file2 .ignored_file3]
+    end
+
+    it "returns [] when file does not exist" do
+      File.should_receive(:open).with(DotfileLinker.ignore_file_path, kind_of(String)).and_raise(Errno::ENOENT)
+      DotfileLinker.ignore_list.should == []
+    end
+  end
+
   describe ".link_files" do
     it "raises exception when home dir and dotfiles dir are the same" do
       DotfileLinker.stub!(:dotfiles_dir).and_return(DotfileLinker.home_dir)

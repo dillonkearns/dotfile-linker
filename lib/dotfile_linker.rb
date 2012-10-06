@@ -23,6 +23,19 @@ module DotfileLinker
     optparse.parse!
   end
 
+  def self.ignore_list
+    @@ignore_list ||=
+        begin
+          File.open(ignore_file_path, 'rb').to_a.map(&:chomp)
+        rescue Errno::ENOENT
+          []
+        end
+  end
+
+  def self.ignore_file_path
+    File.expand_path("~/.dotfile_linker_ignore")
+  end
+
   def self.exclude_file?(filename)
     filename =~ /^\.\.?$/ or BLACKLIST.include?(filename)
   end
