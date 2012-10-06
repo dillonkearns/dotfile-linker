@@ -16,10 +16,8 @@ module DotfileLinker
 
   def self.parse_options
     optparse = OptionParser.new do |opts|
-      opts.on('-d', '--delete', 'Delete symlinks') { @@options[:delete_mode] = true }
       opts.on('-p', '--path PATH', String, 'Use [PATH] as dotfiles directory (instead of current directory)') { |path| @@options[:path] = File.expand_path(path) }
       opts.on_tail('-v', '--version', 'Show version') { puts VERSION; exit }
-      opts.on_tail('-h', '--help', 'Show this message') { puts opts; exit }
       opts.on_tail('-h', '--help', 'Show this message') { puts opts; exit }
     end
     optparse.parse!
@@ -51,28 +49,18 @@ module DotfileLinker
   end
 
   def self.link_file(filename)
-    unless exclude_file?(filename)
-      symlink_path = File.expand_path("~/#{ filename }")
-      actual_file_path = File.expand_path("#{ dotfiles_dir }/#{ filename }")
-      if @@options[:delete_mode]
-        if File.symlink?(symlink_path)
-          File.delete(symlink_path) if positive_user_response?("delete symlink #{ symlink_path.human_filename.magenta }? (y/n)")
-        end
-      else
-        unless File.symlink?(symlink_path)
-          if positive_user_response?("link #{ symlink_path.human_filename.magenta } -> #{ actual_file_path.human_filename.cyan }? (y/n)")
-            if File.exist?(symlink_path)
-              raise FileAlreadyExistsError.new("File already exists in #{ home_dir }. Please remove the file and try again.")
-            end
-            FileUtils.ln_s(actual_file_path, symlink_path, :verbose => true)
-          end
-        end
+    home_dir_file_path = File.expand_path("~/#{ filename }")
+    dotfiles_dir_file_path = File.expand_path("#{ dotfiles_dir }/#{ filename }")
+    unless File.symlink?(home_dir_file_path) || exclude_file?(filename)
+      if positive_user_response?("move and link #{ home_dir_file_path.human_filename.magenta } -> #{ dotfiles_dir_file_path.human_filename.cyan }? (y/n)")
+        FileUtils.mv(home_dir_file_path, dotfiles_dir_file_path, :verbose => true)
+        FileUtils.ln_s(dotfiles_dir_file_path, home_dir_file_path, :verbose => true)
       end
     end
   end
 
   def self.link_files
-    Dir.foreach(dotfiles_dir) { |filename| link_file(filename) }
+    Dir.foreach(home_dir) { |filename| link_file(filename) }
   end
 
   def self.start
