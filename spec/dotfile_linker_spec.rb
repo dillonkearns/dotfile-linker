@@ -4,43 +4,45 @@ require 'dotfile_linker'
 describe DotfileLinker do
   before do
     ENV['HOME'] = '/Users/someuser'
-    DotfileLinker.stub!(:positive_user_response?).and_return(true)
+    DotfileLinker::Linker.any_instance.stub(:positive_user_response?).and_return(true)
   end
 
-  describe ".exclude_file?" do
+  before(:each) { @linker = DotfileLinker::Linker.new }
+
+  describe "#exclude_file?" do
     it "excludes files in blacklist" do
-      %w{ . .. .git }.each { |filename| DotfileLinker.exclude_file?(filename).should be }
+      %w{ . .. .git }.each { |filename| @linker.exclude_file?(filename).should be }
     end
 
     it "doesn't exclude files prefixed with dot" do
-      %w{ .bash_profile .emacs .gitconfig .tmux.conf }.each { |filename| DotfileLinker.exclude_file?(filename).should_not be }
+      %w{ .bash_profile .emacs .gitconfig .tmux.conf }.each { |filename| @linker.exclude_file?(filename).should_not be }
     end
 
     it "doesn't exclude files that aren't prefixed with dot" do
-      ['my_script' 'sample.rb'].each { |filename| DotfileLinker.exclude_file?(filename).should_not be }
+      ['my_script' 'sample.rb'].each { |filename| @linker.exclude_file?(filename).should_not be }
     end
   end
 
-  describe ".ignore_list" do
+  describe "#ignore_list" do
     it "excludes files which are in the .dotfiles_ignore file" do
-      File.should_receive(:open).with(DotfileLinker.ignore_file_path, kind_of(String)).and_return(".ignored_file1\n.ignored_file2\n.ignored_file3\n")
-      DotfileLinker.ignore_list.should == %w[.ignored_file1 .ignored_file2 .ignored_file3]
+      File.should_receive(:open).with(File.expand_path("~/.dotfile_linker_ignore"), kind_of(String)).and_return(".ignored_file1\n.ignored_file2\n.ignored_file3\n")
+      @linker.ignore_list.should == %w[.ignored_file1 .ignored_file2 .ignored_file3]
     end
 
     it "returns [] when file does not exist" do
-      File.should_receive(:open).with(DotfileLinker.ignore_file_path, kind_of(String)).and_raise(Errno::ENOENT)
-      DotfileLinker.ignore_list.should == []
+      File.should_receive(:open).with(File.expand_path("~/.dotfile_linker_ignore"), kind_of(String)).and_raise(Errno::ENOENT)
+      @linker.ignore_list.should == []
     end
   end
 
-  describe ".link_files" do
+  describe "#link_files" do
     it "raises exception when home dir and dotfiles dir are the same" do
-      DotfileLinker.stub!(:dotfiles_dir).and_return(DotfileLinker.home_dir)
-      expect { DotfileLinker.link_files }.to raise_error(DotfileLinker::InvalidDotfilesDir)
+      @linker.stub!(:dotfiles_dir).and_return(@linker.home_dir)
+      expect { @linker.link_files }.to raise_error(DotfileLinker::InvalidDotfilesDir)
     end
   end
 
-  describe ".link_file" do
+  describe "#link_file" do
     before do
       @bad_filenames = %w{ . .. .git }
       @good_filenames = %w{.bash_profile .bashrc .dotrc  .emacs .gemrc .gitconfig .gitignore_global .irbrc .oh-my-zsh
@@ -62,11 +64,11 @@ describe DotfileLinker do
           FileUtils.should_not_receive(:mv)
 
           @good_filenames.each do |filename|
-            DotfileLinker.link_file(filename)
+            @linker.link_file(filename)
           end
 
           @bad_filenames.each do |filename|
-            DotfileLinker.link_file(filename)
+            @linker.link_file(filename)
           end
         end
       end
@@ -79,10 +81,10 @@ describe DotfileLinker do
         it "should move then symlinks accepted files" do
           @good_filenames.each do |filename|
             home_dir_file_path = "#{ ENV['HOME'] }/#{ filename }"
-            dotfiles_dir_file_path = "#{ DotfileLinker.dotfiles_dir }/#{ filename }"
+            dotfiles_dir_file_path = "#{ @linker.dotfiles_dir }/#{ filename }"
             FileUtils.should_receive(:mv).with(home_dir_file_path, dotfiles_dir_file_path, { :verbose => true }).ordered
             FileUtils.should_receive(:ln_s).with(dotfiles_dir_file_path, home_dir_file_path, { :verbose => true }).ordered
-            DotfileLinker.link_file(filename)
+            @linker.link_file(filename)
           end
         end
 
@@ -90,7 +92,7 @@ describe DotfileLinker do
           FileUtils.should_not_receive(:ln_s)
           FileUtils.should_not_receive(:mv)
           @bad_filenames.each do |filename|
-            DotfileLinker.link_file(filename)
+            @linker.link_file(filename)
           end
         end
       end
