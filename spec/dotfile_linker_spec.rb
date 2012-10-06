@@ -21,9 +21,12 @@ describe DotfileLinker do
   end
 
   describe ".link_file" do
+    before do
+      DotfileLinker.stub!(:positive_user_response?).and_return(true)
+    end
+
     describe "when symlink doesn't already exist" do
       before do
-        DotfileLinker.stub!(:positive_user_response?).and_return(true)
         File.stub!(:symlink?).and_return(false)
         File.stub!(:exist?).with(/^#{ ENV['HOME'] }/).and_return(false)
 
@@ -34,14 +37,17 @@ describe DotfileLinker do
 
       it "links accepted files to home directory" do
         @good_filenames.each do |filename|
-          File.should_receive(:symlink).with("#{ Dir.pwd }/#{ filename }", "#{ ENV['HOME'] }/#{ filename }")
+          home_dir_file_path = "#{ ENV['HOME'] }/#{ filename }"
+          dotfiles_dir_file_path = "#{ DotfileLinker.dotfiles_dir }/#{ filename }"
+          FileUtils.should_receive(:ln_s).with(dotfiles_dir_file_path, home_dir_file_path, { :verbose => true })
           DotfileLinker.link_file(filename)
         end
       end
 
       it "doesn't link blacklisted files" do
+        FileUtils.should_not_receive(:ln_s)
+        FileUtils.should_not_receive(:mv)
         @bad_filenames.each do |filename|
-          File.should_not_receive(:symlink)
           DotfileLinker.link_file(filename)
         end
       end

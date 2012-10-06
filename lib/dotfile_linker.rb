@@ -1,5 +1,6 @@
 require 'dotfile_linker/version'
 require 'optparse'
+require 'fileutils'
 require 'colorize'
 
 class String
@@ -63,7 +64,7 @@ module DotfileLinker
             if File.exist?(symlink_path)
               raise FileAlreadyExistsError.new("File already exists in #{ home_dir }. Please remove the file and try again.")
             end
-            File.symlink(actual_file_path, symlink_path)
+            FileUtils.ln_s(actual_file_path, symlink_path, :verbose => true)
           end
         end
       end
