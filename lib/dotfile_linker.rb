@@ -29,6 +29,10 @@ module DotfileLinker
       optparse.parse!
     end
 
+      def each_dotfile(dirname)
+        Dir.foreach(dirname) { |filename| yield filename if filename =~ /^\./ }
+      end
+
     def dotfiles_dir
       @options[:path] || Dir.pwd
     end
@@ -107,7 +111,7 @@ module DotfileLinker
     end
 
     def link_files
-      Dir.foreach(home_dir) { |filename| link_file(filename) }
+      each_dotfile(home_dir) { |filename| link_file(filename) }
     end
 
     def unlink_file(filename)
@@ -123,7 +127,7 @@ module DotfileLinker
     end
 
     def unlink_files
-      Dir.foreach(dotfiles_dir) { |filename| unlink_file(filename) }
+      each_dotfile(dotfiles_dir) { |filename| unlink_file(filename) }
     end
 
     def start

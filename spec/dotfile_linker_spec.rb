@@ -27,6 +27,19 @@ describe DotfileLinker::Linker do
     end
   end
 
+  describe "#each_dotfile" do
+    it "should return only files starting with ." do
+      dotfiles = %w{ .bash_profile .emacs .gitconfig .tmux.conf }
+      normal_files = %w{ Applications Users SomeFolder test}
+      all_files = dotfiles + normal_files
+      expectation = Dir.should_receive(:foreach).with('/some/path/')
+      all_files.each { |file| expectation.and_yield(file) }
+      actual = []
+      @linker.each_dotfile('/some/path/') { |filename| actual << filename }
+      actual.should == dotfiles
+    end
+  end
+
   describe "#exclude_file?" do
     it "excludes files in blacklist" do
       %w{ . .. .git }.each { |filename| @linker.exclude_file?(filename).should be }
@@ -88,8 +101,8 @@ describe DotfileLinker::Linker do
       end
 
       it "should call #ignore_file" do
-        @linker.should_receive(:ignore_file).with("file I want to ignore")
-        @linker.link_file("file I want to ignore")
+        @linker.should_receive(:ignore_file).with(".dotfile_i_want_to_ignore")
+        @linker.link_file(".dotfile_i_want_to_ignore")
       end
     end
 
@@ -147,7 +160,7 @@ describe DotfileLinker::Linker do
     [true, false].each do |home_dir_file_is_symlink|
       describe "when symlink #{ "isn't" unless home_dir_file_is_symlink } in ~" do
         it "should #{ "not" unless home_dir_file_is_symlink } remove symlink and move file" do
-          filename = "file_to_unlink"
+          filename = ".file_to_unlink"
           home_dir_file_path = "#{ ENV['HOME'] }/#{ filename }"
           dotfiles_dir_file_path = "#{ @linker.dotfiles_dir }/#{ filename }"
 
