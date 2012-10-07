@@ -1,4 +1,4 @@
-require 'dotfile_linker/version'
+require 'dotfile_linker/version' unless defined?(DotfileLinker::VERSION)
 require 'optparse'
 require 'fileutils'
 require 'colorize'
@@ -23,7 +23,7 @@ module DotfileLinker
       optparse = OptionParser.new do |opts|
         opts.on('-p', '--path PATH', 'Use [PATH] as dotfiles directory (instead of current directory)') { |path| @options[:path] = File.expand_path(path) }
         opts.on_tail('-u', '--unlink', 'Unlink mode') { @options[:unlink_mode] = true }
-        opts.on_tail('-v', '--version', 'Show version') { puts VERSION; exit }
+        opts.on_tail('-v', '--version', 'Show version') { puts DotfileLinker::VERSION; exit }
         opts.on_tail('-h', '--help', 'Show this message') { puts opts; exit }
       end
       optparse.parse!
