@@ -21,7 +21,7 @@ describe DotfileLinker::Linker do
       values.each do |k, v|
         v.each do |response|
           @linker.stub(:gets).and_return(response)
-          @linker.user_response('fake message').should == k
+          @linker.user_response('fake message', 'fake options').should == k
         end
       end
     end
