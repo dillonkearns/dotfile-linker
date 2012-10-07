@@ -2,19 +2,15 @@ require 'spec_helper'
 require 'dotfile_linker'
 
 describe DotfileLinker::Linker do
-  before do
-    ENV['HOME'] = '/Users/someuser'
-  end
-
   before(:each) do
     @linker = DotfileLinker::Linker.new
     @linker.stub(:user_response).and_return(:yes)
+    DotfileLinker::Linker.any_instance.stub(:puts)
   end
 
   describe "#user_response" do
     before do
       @linker = DotfileLinker::Linker.new
-      @linker.stub(:puts)
     end
 
     it "returns expected symbols" do
@@ -72,10 +68,10 @@ describe DotfileLinker::Linker do
     end
   end
 
-  describe "#link_files" do
+  describe "#raise_if_home_and_dotfiles_dir_match" do
     it "raises exception when home dir and dotfiles dir are the same" do
       @linker.stub(:dotfiles_dir).and_return(@linker.home_dir)
-      expect { @linker.link_files }.to raise_error(DotfileLinker::InvalidDotfilesDir)
+      expect { @linker.raise_if_home_and_dotfiles_dir_match }.to raise_error(DotfileLinker::InvalidDotfilesDir)
     end
   end
 
@@ -143,6 +139,42 @@ describe DotfileLinker::Linker do
             @linker.link_file(filename)
           end
         end
+      end
+    end
+  end
+
+  describe "#unlink_file" do
+    [true, false].each do |home_dir_file_is_symlink|
+      describe "when symlink #{ "isn't" unless home_dir_file_is_symlink } in ~" do
+        it "should #{ "not" unless home_dir_file_is_symlink } remove symlink and move file" do
+          filename = "file_to_unlink"
+          home_dir_file_path = "#{ ENV['HOME'] }/#{ filename }"
+          dotfiles_dir_file_path = "#{ @linker.dotfiles_dir }/#{ filename }"
+
+          File.stub(:symlink?).with(home_dir_file_path).and_return(home_dir_file_is_symlink)
+          if home_dir_file_is_symlink
+            FileUtils.should_receive(:rm).with(home_dir_file_path, { :verbose => true }).ordered
+            FileUtils.should_receive(:mv).with(dotfiles_dir_file_path, home_dir_file_path, { :verbose => true }).ordered
+          else
+            FileUtils.should_not_receive(:rm)
+            FileUtils.should_not_receive(:mv)
+          end
+          @linker.unlink_file(filename)
+        end
+      end
+    end
+
+    describe "with negative response" do
+      before do
+        @linker.stub(:user_response).and_return(:no)
+      end
+
+      it "does not remove symlink or move file" do
+        File.stub(:symlink?).and_return(true)
+        FileUtils.should_not_receive(:rm)
+        FileUtils.should_not_receive(:mv)
+
+        @linker.unlink_file('some_file')
       end
     end
   end
