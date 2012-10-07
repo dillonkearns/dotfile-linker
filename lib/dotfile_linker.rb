@@ -27,22 +27,29 @@ module DotfileLinker
       ENV['HOME']
     end
 
+    def ignore_file_name
+      File.expand_path("~/.dotfile_linker_ignore")
+    end
+
     def raise_if_home_and_dotfiles_dir_match
       if File.expand_path(home_dir) == File.expand_path(dotfiles_dir)
         raise InvalidDotfilesDir, "Please specify your dotfiles directory by running `link_dotfiles` from that path, or providing a --path flag".red
       end
     end
 
-    def positive_user_response?(message)
+    def user_response(message)
       puts message
       case gets.strip
       when /^y/i
-        true
+        :yes
       when /^n/i
-        false
+        :no
+      when /^i/i
+        :ignore
+      when /^q/i
+        :quit
       else
-        puts 'Exiting'
-        exit
+        user_response("Please enter a valid response")
       end
     end
 
@@ -58,23 +65,38 @@ module DotfileLinker
     def ignore_list
       @ignore_list ||=
         begin
-          File.open(File.expand_path("~/.dotfile_linker_ignore"), 'rb').to_a.map(&:chomp)
+          File.open(ignore_file_name, 'rb').to_a.map(&:chomp)
         rescue Errno::ENOENT
           []
         end
     end
 
+    def ignore_file(filename)
+      File.open(ignore_file_name, 'a') do |f|
+        f.puts filename
+      end
+    end
+
     def exclude_file?(filename)
-      filename =~ /^\.\.?$/ or BLACKLIST.include?(filename)
+      filename =~ /^\.\.?$/ or BLACKLIST.include?(filename) or ignore_list.include?(filename)
     end
 
     def link_file(filename)
       home_dir_file_path = File.expand_path("~/#{ filename }")
       dotfiles_dir_file_path = File.expand_path("#{ dotfiles_dir }/#{ filename }")
       unless File.symlink?(home_dir_file_path) || exclude_file?(filename)
-        if positive_user_response?("move and link #{ home_dir_file_path.human_filename.magenta } -> #{ dotfiles_dir_file_path.human_filename.cyan }? (y/n)")
+        case user_response("move and link #{ home_dir_file_path.human_filename.magenta } -> #{ dotfiles_dir_file_path.human_filename.cyan }? (y/n/i[gnore])")
+        when :yes
           FileUtils.mv(home_dir_file_path, dotfiles_dir_file_path, :verbose => true)
           FileUtils.ln_s(dotfiles_dir_file_path, home_dir_file_path, :verbose => true)
+        when :ignore
+          ignore_file(filename)
+          puts "ignored #{filename.cyan}"
+        when :no
+          # do nothing
+        when :quit
+          puts "Exiting"
+          exit
         end
       end
     end
