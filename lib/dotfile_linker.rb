@@ -19,6 +19,16 @@ module DotfileLinker
       @options = {}
     end
 
+    def parse_options
+      optparse = OptionParser.new do |opts|
+        opts.on('-p', '--path PATH', 'Use [PATH] as dotfiles directory (instead of current directory)') { |path| @options[:path] = File.expand_path(path) }
+        opts.on_tail('-u', '--unlink', 'Unlink mode') { @options[:unlink_mode] = true }
+        opts.on_tail('-v', '--version', 'Show version') { puts VERSION; exit }
+        opts.on_tail('-h', '--help', 'Show this message') { puts opts; exit }
+      end
+      optparse.parse!
+    end
+
     def dotfiles_dir
       @options[:path] || Dir.pwd
     end
@@ -33,12 +43,12 @@ module DotfileLinker
 
     def raise_if_home_and_dotfiles_dir_match
       if File.expand_path(home_dir) == File.expand_path(dotfiles_dir)
-        raise InvalidDotfilesDir, "Please specify your dotfiles directory by running `link_dotfiles` from that path, or providing a --path flag".red
+        raise InvalidDotfilesDir, "#{ dotfiles_dir } is not a valid dotfiles directory. Please specify your dotfiles directory by running `link_dotfiles` from that path, or providing a --path flag".red
       end
     end
 
-    def user_response(message)
-      puts message
+    def user_response(message, choices)
+      puts "#{message} #{choices}"
       case gets.strip
       when /^y/i
         :yes
@@ -49,27 +59,17 @@ module DotfileLinker
       when /^q/i
         :quit
       else
-        user_response("Please enter a valid response")
+        user_response("Please enter a valid response", choices)
       end
     end
 
-    def user_response_or_exit(message)
-      response = user_response(message)
+    def user_response_or_exit(message, choices)
+      response = user_response(message, choices)
       if response == :quit
         puts "Exiting"
         exit
       end
       response
-    end
-
-    def parse_options
-      optparse = OptionParser.new do |opts|
-        opts.on('-p', '--path PATH', String, 'Use [PATH] as dotfiles directory (instead of current directory)') { |path| @options[:path] = File.expand_path(path) }
-        opts.on_tail('-u', '--unlink', 'Unlink mode') { @options[:unlink_mode] = true }
-        opts.on_tail('-v', '--version', 'Show version') { puts VERSION; exit }
-        opts.on_tail('-h', '--help', 'Show this message') { puts opts; exit }
-      end
-      optparse.parse!
     end
 
     def ignore_list
@@ -95,13 +95,13 @@ module DotfileLinker
       home_dir_file_path = File.expand_path("~/#{ filename }")
       dotfiles_dir_file_path = File.expand_path("#{ dotfiles_dir }/#{ filename }")
       unless File.symlink?(home_dir_file_path) || exclude_file?(filename)
-        case user_response_or_exit("move and link #{ home_dir_file_path.human_filename.magenta } -> #{ dotfiles_dir_file_path.human_filename.cyan }? (y/n/i[gnore])")
+        case user_response_or_exit("move and link #{ home_dir_file_path.human_filename.magenta } -> #{ dotfiles_dir_file_path.human_filename.cyan }?", " (y/n/i[gnore]/q)")
         when :yes
           FileUtils.mv(home_dir_file_path, dotfiles_dir_file_path, :verbose => true)
           FileUtils.ln_s(dotfiles_dir_file_path, home_dir_file_path, :verbose => true)
         when :ignore
           ignore_file(filename)
-          puts "ignored #{filename.cyan}"
+          puts "added #{filename.cyan} to ignore file"
         end
       end
     end
@@ -114,7 +114,7 @@ module DotfileLinker
       home_dir_symlink_path = File.expand_path("~/#{ filename }")
       dotfiles_dir_file_path = File.expand_path("#{ dotfiles_dir }/#{ filename }")
       if File.symlink?(home_dir_symlink_path)
-        case user_response_or_exit("unlink #{ home_dir_symlink_path.human_filename.magenta } and restore #{ dotfiles_dir_file_path.human_filename.cyan }? (y/n)")
+        case user_response_or_exit("unlink #{ home_dir_symlink_path.human_filename.magenta } and restore #{ dotfiles_dir_file_path.human_filename.cyan }?", " (y/n/q)")
         when :yes
           FileUtils.rm(home_dir_symlink_path, :verbose => true)
           FileUtils.mv(dotfiles_dir_file_path, home_dir_symlink_path, :verbose => true)
@@ -127,8 +127,8 @@ module DotfileLinker
     end
 
     def start
-      raise_if_home_and_dotfiles_dir_match
       parse_options
+      raise_if_home_and_dotfiles_dir_match
       if @options[:unlink_mode]
         unlink_files
       else
