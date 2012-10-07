@@ -24,7 +24,7 @@ describe DotfileLinker::Linker do
                  :quit => %w{q Q quit Quit} }
       values.each do |k, v|
         v.each do |response|
-          @linker.stub!(:gets).and_return(response)
+          @linker.stub(:gets).and_return(response)
           @linker.user_response('fake message').should == k
         end
       end
@@ -74,7 +74,7 @@ describe DotfileLinker::Linker do
 
   describe "#link_files" do
     it "raises exception when home dir and dotfiles dir are the same" do
-      @linker.stub!(:dotfiles_dir).and_return(@linker.home_dir)
+      @linker.stub(:dotfiles_dir).and_return(@linker.home_dir)
       expect { @linker.link_files }.to raise_error(DotfileLinker::InvalidDotfilesDir)
     end
   end
@@ -88,7 +88,7 @@ describe DotfileLinker::Linker do
 
     describe "when the user ignores a file" do
       before do
-        @linker.stub!(:user_response).and_return(:ignore)
+        @linker.stub(:user_response).and_return(:ignore)
       end
 
       it "should call #ignore_file" do
@@ -99,12 +99,12 @@ describe DotfileLinker::Linker do
 
     describe "when file exists in ~/" do
       before do
-        File.stub!(:exist?).with(/^#{ ENV['HOME'] }/).and_return(true)
+        File.stub(:exist?).with(/^#{ ENV['HOME'] }/).and_return(true)
       end
 
       describe "and is a symlink" do
         before do
-          File.stub!(:symlink?).and_return(true)
+          File.stub(:symlink?).and_return(true)
         end
 
         it "doesn't attempt to move or symlink any files" do
@@ -123,7 +123,7 @@ describe DotfileLinker::Linker do
 
       describe "and is not a symlink" do
         before do
-          File.stub!(:symlink?).and_return(false)
+          File.stub(:symlink?).and_return(false)
         end
 
         it "should move then symlinks accepted files" do
