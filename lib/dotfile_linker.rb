@@ -65,7 +65,7 @@ module DotfileLinker
     def ignore_list
       @ignore_list ||=
         begin
-          File.open(ignore_file_name, 'rb').to_a.map(&:chomp)
+          File.open(ignore_file_name, 'rb').lines.to_a.map(&:chomp)
         rescue Errno::ENOENT
           []
         end
