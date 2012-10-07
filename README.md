@@ -21,11 +21,11 @@ Run `dotfile_linker` from your dotfiles directory. The script will then run thro
 symlinked in your home directory and ask if you want to symlink it. The `-u` option unlinks and restores files to your
 home directory.
 
-![Link example](link-example.jpg)
+![Link example](http://i.imgur.com/k4O1z.jpg)
 
 
 
-![Unlink example](unlink-example.png)
+![Unlink example](http://i.imgur.com/7JUY9.png)
 
 ## Contributing
 
