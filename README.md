@@ -18,8 +18,14 @@ This gem is hosted on [rubygems.org](https://rubygems.org/gems/dotfile_linker), 
 ## Usage
 
 Run `dotfile_linker` from your dotfiles directory. The script will then run through each file that isn't already
-symlinked in your home directory and ask if you want to symlink it. The `-d` option cycles through existing symlinks in
-your home directory and asks if you'd like to remove them.
+symlinked in your home directory and ask if you want to symlink it. The `-u` option unlinks and restores files to your
+home directory.
+
+![Link example](link-example.jpg)
+
+
+
+![Unlink example](unlink-example.png)
 
 ## Contributing
 
