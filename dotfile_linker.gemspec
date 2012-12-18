@@ -18,6 +18,6 @@ Gem::Specification.new do |gem|
   gem.required_ruby_version = ">=1.8.7"
 
   gem.add_runtime_dependency "colorize", "~> 0.5.8"
-  gem.add_development_dependency "rake", "~> 0.9.2"
-  gem.add_development_dependency "rspec", "~> 2.11.0"
+  gem.add_development_dependency "rake", "~> 10.0.3"
+  gem.add_development_dependency "rspec", "~> 2.12.0"
 end

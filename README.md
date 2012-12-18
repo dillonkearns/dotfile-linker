@@ -1,4 +1,4 @@
-# DotfileLinker [![Build Status](https://secure.travis-ci.org/dillonkearns/dotfile-linker.png?branch=master)](http://travis-ci.org/dillonkearns/dotfile-linker?branch=master) [![Dependency Status](https://gemnasium.com/dillonkearns/dotfile_linker.png)](https://gemnasium.com/dillonkearns/dotfile_linker) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/dillonkearns/dotfile-linker)
+# DotfileLinker [![Build Status](https://secure.travis-ci.org/dillonkearns/dotfile-linker.png?branch=master)](http://travis-ci.org/dillonkearns/dotfile-linker?branch=master) [![Dependency Status](https://gemnasium.com/dillonkearns/dotfile-linker.png)](https://gemnasium.com/dillonkearns/dotfile-linker) [![Code Climate](https://codeclimate.com/badge.png)](https://codeclimate.com/github/dillonkearns/dotfile-linker)
 
 A simple command-line utility to help you symlink your dotfiles to your home directory. Just run `dotfile_linker` from
 your dotfiles directory.
